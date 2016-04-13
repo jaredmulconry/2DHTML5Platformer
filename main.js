@@ -42,22 +42,77 @@ var fpsTime = 0;
 
 var player = new Player();
 var keyboard = new Keyboard();
+var bullets = [];
+var firingRate = 0.3;
+var firingTimer = 0;
+var enemies = [];
+var enemySpawnRate = 3;
+var enemySpawnTimer = 0;
+
+function bulletsEnemiesCollide()
+{
+	for(var i = 0; i < enemies.length; ++i)
+	{
+		for(var j = 0; j < bullets.length; ++j)
+		{
+			if(intersects(enemies[i].position.x, enemies[i].position.y,
+							enemies[i].width, enemies[i].height,
+							bullets[j].position.x, bullets[j].position.y,
+							bullets[j].width, bullets[j].height))
+			{
+				enemies.splice(i, 1);
+				bullets.splice(j, 1);
+				break;
+			}
+		}
+	}
+}
+
 function run()
 {
 	context.fillStyle = "#ccc";
 	context.fillRect(0, 0, canvas.width, canvas.height);
 	var deltaTime = getDeltaTime();
+	
+	firingTimer -= deltaTime;
+	if(firingTimer <= 0 && keyboard.isKeyDown(keyboard.KEY_SPACE))
+	{
+		bullets.push(new Bullet());
+		firingTimer = firingRate;
+	}
+	for(var i = 0; i < bullets.length; ++i)
+	{
+		bullets[i].update(deltaTime);
+		bullets[i].draw();
+	}
+	
 	player.update(deltaTime);
 	player.draw();
+	
+	enemySpawnTimer -= deltaTime;
+	if(enemySpawnTimer <= 0)
+	{
+		enemies.push(new Enemy());
+		enemySpawnTimer = enemySpawnRate;
+	}
+	for(var i = 0; i < enemies.length; ++i)
+	{
+		enemies[i].update(deltaTime);
+		enemies[i].draw();
+	}
+	
+	bulletsEnemiesCollide();
+	
 	// update the frame counter 
 	fpsTime += deltaTime;
 	fpsCount++;
 	if(fpsTime >= 1)
 	{
-	fpsTime -= 1;
-	fps = fpsCount;
-	fpsCount = 0;
+		fpsTime -= 1;
+		fps = fpsCount;
+		fpsCount = 0;
 	}
+	
 	// draw the FPS
 	context.fillStyle = "#f00";
 	context.font="14px Arial";
