@@ -32,6 +32,22 @@ function getDeltaTime()
 var SCREEN_WIDTH = canvas.width;
 var SCREEN_HEIGHT = canvas.height;
 
+function drawMap()
+{
+	for(var layerIdx = 0;
+			layerIdx < level1.layers.length;
+			++layerIdx)
+	{
+		var idx = 0;
+		for(var y = 0;
+				y < level1.layers[layerIdx].height;
+				++y)
+		{
+			for(var x = 0;
+					x < level1.layers[layerIdx])
+		}
+	}
+}
 
 // some variables to calculate the Frames Per Second (FPS - this tells use
 // how fast our game is running, and allows us to make the game run at a 
@@ -42,31 +58,6 @@ var fpsTime = 0;
 
 var player = new Player();
 var keyboard = new Keyboard();
-var bullets = [];
-var firingRate = 0.3;
-var firingTimer = 0;
-var enemies = [];
-var enemySpawnRate = 3;
-var enemySpawnTimer = 0;
-
-function bulletsEnemiesCollide()
-{
-	for(var i = 0; i < enemies.length; ++i)
-	{
-		for(var j = 0; j < bullets.length; ++j)
-		{
-			if(intersects(enemies[i].position.x, enemies[i].position.y,
-							enemies[i].width, enemies[i].height,
-							bullets[j].position.x, bullets[j].position.y,
-							bullets[j].width, bullets[j].height))
-			{
-				enemies.splice(i, 1);
-				bullets.splice(j, 1);
-				break;
-			}
-		}
-	}
-}
 
 function run()
 {
@@ -74,34 +65,8 @@ function run()
 	context.fillRect(0, 0, canvas.width, canvas.height);
 	var deltaTime = getDeltaTime();
 	
-	firingTimer -= deltaTime;
-	if(firingTimer <= 0 && keyboard.isKeyDown(keyboard.KEY_SPACE))
-	{
-		bullets.push(new Bullet());
-		firingTimer = firingRate;
-	}
-	for(var i = 0; i < bullets.length; ++i)
-	{
-		bullets[i].update(deltaTime);
-		bullets[i].draw();
-	}
-	
 	player.update(deltaTime);
 	player.draw();
-	
-	enemySpawnTimer -= deltaTime;
-	if(enemySpawnTimer <= 0)
-	{
-		enemies.push(new Enemy());
-		enemySpawnTimer = enemySpawnRate;
-	}
-	for(var i = 0; i < enemies.length; ++i)
-	{
-		enemies[i].update(deltaTime);
-		enemies[i].draw();
-	}
-	
-	bulletsEnemiesCollide();
 	
 	// update the frame counter 
 	fpsTime += deltaTime;
