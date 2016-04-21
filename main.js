@@ -39,7 +39,8 @@ var TILESET_TILE = level1.tilesets[0].tilewidth;
 var TILESET_PADDING = level1.tilesets[0].margin;
 var TILESET_SPACING = level1.tilesets[0].spacing;
 var TILESET_COUNT_X = level1.tilesets[0].columns;
-var TILESET_COUNT_Y = level1.tilesets[0].tilecount / TILESET_COUNT_X;
+var TILESET_COUNT_Y = level1.tilesets[0].tilecount 
+						/ TILESET_COUNT_X;
 
 var tileset = document.createElement("img");
 tileset.src = level1.tilesets[0].image;
@@ -50,16 +51,8 @@ function drawMap()
 			layerIdx < LAYER_COUNT;
 			++layerIdx)
 	{
-		var offsetx = 0;
-		var offsety = 0;
-		if(level1.layers[layerIdx].offsetx != undefined)
-		{
-			offsetx = level1.layers[layerIdx].offsetx;
-		}
-		if(level1.layers[layerIdx].offsety != undefined)
-		{
-			offsety = level1.layers[layerIdx].offsety;
-		}
+		var offsetx = level1.layers[layerIdx].offsetx || 0;
+		var offsety = level1.layers[layerIdx].offsety || 0;
 		
 		var idx = 0;
 		for(var y = 0;
@@ -74,7 +67,7 @@ function drawMap()
 				var tileIndex = level1.layers[layerIdx].data[idx] - 1;
 				var sx = TILESET_PADDING + (tileIndex % TILESET_COUNT_X) * (TILESET_TILE + TILESET_SPACING);
 				var sy = TILESET_PADDING + Math.floor(tileIndex / TILESET_COUNT_Y) * (TILESET_TILE + TILESET_SPACING);
-				context.drawImage(tileset, sx, sy, TILESET_TILE, TILESET_TILE, x * TILE + offsetx, (y - 1) * TILE + offsety, TILESET_TILE, TILESET_TILE);
+				context.drawImage(tileset, sx, sy, TILESET_TILE, TILESET_TILE, x * TILE + offsetx, (y - 1) * TILE + offsety, TILESET_TILE+1, TILESET_TILE+1);
 			}
 		}
 	}
@@ -89,6 +82,7 @@ var fpsTime = 0;
 
 var player = new Player();
 var keyboard = new Keyboard();
+var viewOffset = new Vector2();
 
 function run()
 {
@@ -96,10 +90,18 @@ function run()
 	context.fillRect(0, 0, canvas.width, canvas.height);
 	var deltaTime = getDeltaTime();
 	
+	context.save();
+	if(player.position.x >= viewOffset.x + canvas.width/2)
+	{
+		viewOffset.x = player.position.x - canvas.width/2;
+	}
+	context.translate(-viewOffset.x, 0);
 	drawMap();
 	
 	player.update(deltaTime);
 	player.draw();
+	
+	context.restore();
 	
 	// update the frame counter 
 	fpsTime += deltaTime;

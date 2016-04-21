@@ -40,5 +40,5 @@ Player.prototype.update = function(deltaTime)
 }
 Player.prototype.draw = function()
 {
-	DrawImage(context, this.image, this.position.x, this.position.y, this.rotation, 0.75, 0.75);
+	DrawImage(context, this.image, this.position.x, this.position.y, this.rotation);
 }
