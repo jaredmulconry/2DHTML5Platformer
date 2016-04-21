@@ -30,11 +30,12 @@ function IsImageOk(img)
     // No other way of checking: assume it’s ok.
     return true;
 }
-function DrawImage(ctx, img, x, y, rot)
+function DrawImage(ctx, img, x, y, rot, scaleX, scaleY)
 {
 	if(!IsImageOk(img)) return;
 	ctx.save();
 		ctx.translate(x, y);
+		ctx.scale(scaleX || 1, scaleY || 1);
 		ctx.rotate(rot);
 		ctx.drawImage(img, -img.width/2, -img.height/2);
 	ctx.restore();
