@@ -45,29 +45,101 @@ var TILESET_COUNT_Y = level1.tilesets[0].tilecount
 var tileset = document.createElement("img");
 tileset.src = level1.tilesets[0].image;
 
+var LAYER_BACKGROUND = 0;
+var LAYER_PLATFORMS = 1;
+
+var METER = TILE;
+var GRAVITY = METER * 9.8 * 6;
+var MAXDX = METER * 10;
+var MAXDY = METER * 15;
+var ACCEL = MAXDX * 2;
+var FRICTION = MAXDX * 6;
+var JUMP = METER * 1500;
+
+function cellAtPixelCoord(layer, x, y)
+{
+	if(x < 0 || x > SCREEN_WIDTH)
+		return 1;
+	if(y > SCREEN_HEIGHT)
+		return 0;
+	return cellAtTileCoord(layer, p2t(x), p2t(y));
+}
+function cellAtTileCoord(layer, tx, ty)
+{
+	if(tx < 0 || tx >= MAP.tw)
+		return 1;
+	if(ty < 0 || ty >= MAP.th)
+		return 1;
+	return cells[layer][ty][tx];
+}
+function tileToPixel(tile)
+{
+	return tile * TILE;
+}
+function pixelToTile(pixel)
+{
+	return Math.floor(pixel/TILE);
+}
+function bound(value, min, max)
+{
+	if(value < min)
+		return min;
+	if(value > max)
+		return max;
+	return value;
+}
+
 function drawMap()
 {
 	for(var layerIdx = 0;
 			layerIdx < LAYER_COUNT;
 			++layerIdx)
 	{
-		var offsetx = level1.layers[layerIdx].offsetx || 0;
-		var offsety = level1.layers[layerIdx].offsety || 0;
+		var currentLayer = level1.layers[layerIdx];
+		var offsetx = currentLayer.offsetx || 0;
+		var offsety = currentLayer.offsety || 0;
 		
 		var idx = 0;
 		for(var y = 0;
-				y < level1.layers[layerIdx].height;
+				y < currentLayer.height;
 				++y)
 		{
 			for(var x = 0;
-					x < level1.layers[layerIdx].width;
+					x < currentLayer.width;
 					++x, ++idx)
 			{
-				if(level1.layers[layerIdx].data[idx] == 0) continue;
-				var tileIndex = level1.layers[layerIdx].data[idx] - 1;
+				if(currentLayer.data[idx] == 0) continue;
+				var tileIndex = currentLayer.data[idx] - 1;
 				var sx = TILESET_PADDING + (tileIndex % TILESET_COUNT_X) * (TILESET_TILE + TILESET_SPACING);
 				var sy = TILESET_PADDING + Math.floor(tileIndex / TILESET_COUNT_Y) * (TILESET_TILE + TILESET_SPACING);
-				context.drawImage(tileset, sx, sy, TILESET_TILE, TILESET_TILE, x * TILE + offsetx, (y - 1) * TILE + offsety, TILESET_TILE+1, TILESET_TILE+1);
+				context.drawImage(tileset, sx, sy, TILESET_TILE, TILESET_TILE, x * TILE + offsetx, y * TILE + offsety, TILESET_TILE+1, TILESET_TILE+1);
+			}
+		}
+	}
+}
+
+var cells = [];
+function initialize() 
+{
+	for(var layerIdx = 0; layerIdx < LAYER_COUNT; ++layerIdx)
+	{
+		cells[layerIdx] = [];
+		var idx = 0;
+		var currentLayer = level1.layers[layerIdx];
+		for(var y = 0; y < currentLayer.height; ++y)
+		{
+			cells[layerIdx][y] = [];
+			for(var x = 0; x < currentLayer.width; ++x)
+			{
+				if(currentLayer.data[idx] != 0)
+				{
+					cells[layerIdx][y][x] = 1;
+				}
+				else if(cells[layerIdx][y][x] != 1)
+				{
+					cells[layerIdx][y][x] = 0;
+				}
+				++idx;
 			}
 		}
 	}
@@ -119,7 +191,7 @@ function run()
 	context.fillText("FPS: " + fps, 5, 20, 100);
 }
 
-
+initialize();
 //-------------------- Don't modify anything below here
 
 
