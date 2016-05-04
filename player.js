@@ -1,7 +1,7 @@
 //player.js
 
 var LEFT = 0;
-var RIGHT = 0;
+var RIGHT = 1;
 
 var ANIM_IDLE_LEFT = 0;
 var ANIM_JUMP_LEFT = 1;
@@ -68,7 +68,7 @@ var Player = function() {
 	this.gunOffset = new Vector2(64, 36);
 	this.width = SPRITE_WIDTH;
 	this.height = SPRITE_HEIGHT;
-	this.offset = new Vector2(0, -TILE/8.0);
+	this.offset = new Vector2(TILE/2.0, -TILE/2.0);
 	
 	this.falling = true;
 	this.jumping = false;
@@ -128,16 +128,6 @@ Player.prototype.update = function(deltaTime)
 	if(keyboard.isKeyDown(keyboard.KEY_SPACE) == true)
 	{
 		jump = true;
-		if(this.direction == LEFT && 
-		   this.sprite.currentAnimation != ANIM_JUMP_LEFT)
-		{
-			this.sprite.setAnimation(ANIM_JUMP_LEFT);
-		}
-		else if(this.direction == RIGHT && 
-		   this.sprite.currentAnimation != ANIM_JUMP_RIGHT)
-		{
-			this.sprite.setAnimation(ANIM_JUMP_RIGHT);
-		}
 	}
 	
 	if(jump && !this.jumping && !falling)
