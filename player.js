@@ -156,8 +156,8 @@ Player.prototype.update = function(deltaTime)
 	else if(wasright)
 		ddx = ddx - FRICTION;
 	
-	this.position.set(Math.floor(this.position.x + deltaTime * this.velocity.x),
-					  Math.floor(this.position.y + deltaTime * this.velocity.y));
+	this.position.set(Math.round(this.position.x + deltaTime * this.velocity.x),
+					  Math.round(this.position.y + deltaTime * this.velocity.y));
 	this.velocity.set(bound(this.velocity.x + deltaTime * ddx, -MAXDX, MAXDX),
 					  bound(this.velocity.y + deltaTime * ddy, -MAXDY, MAXDY));
 	
