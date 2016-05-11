@@ -172,11 +172,12 @@ Player.prototype.update = function(deltaTime)
 	
 	var tx = pixelToTile(position.x);
 	var ty = pixelToTile(position.y);
-	var cell = cellAtTileCoord(LAYER_PLATFORMS, tx, ty);
-	var cellleft = cellAtTileCoord(LAYER_PLATFORMS, tx - 1, ty);
-	var cellright = cellAtTileCoord(LAYER_PLATFORMS, tx + 1, ty);
-	var celldown = cellAtTileCoord(LAYER_PLATFORMS, tx, ty + 1);
-	var cellup = cellAtTileCoord(LAYER_PLATFORMS, tx, ty - 1);
+	var platformsLayer = GetLayerIndexByName(level1.layers, LAYER_PLATFORMS);
+	var cell = cellAtTileCoord(platformsLayer, tx, ty);
+	var cellleft = cellAtTileCoord(platformsLayer, tx - 1, ty);
+	var cellright = cellAtTileCoord(platformsLayer, tx + 1, ty);
+	var celldown = cellAtTileCoord(platformsLayer, tx, ty + 1);
+	var cellup = cellAtTileCoord(platformsLayer, tx, ty - 1);
 	
 	if(this.velocity.y > 0)
 	{

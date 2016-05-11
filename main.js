@@ -35,18 +35,11 @@ var SCREEN_HEIGHT = canvas.height;
 var LAYER_COUNT = level1.layers.length;
 var MAP = {tw: level1.width, th: level1.height};
 var TILE = level1.tilewidth;
-var TILESET_TILE = level1.tilesets[0].tilewidth;
-var TILESET_PADDING = level1.tilesets[0].margin;
-var TILESET_SPACING = level1.tilesets[0].spacing;
-var TILESET_COUNT_X = level1.tilesets[0].columns;
-var TILESET_COUNT_Y = level1.tilesets[0].tilecount 
-						/ TILESET_COUNT_X;
 
-var tileset = document.createElement("img");
-tileset.src = level1.tilesets[0].image;
+var levelImages = LoadLevelImages(level1);
 
-var LAYER_BACKGROUND = 0;
-var LAYER_PLATFORMS = 1;
+var LAYER_BACKGROUND = "Background";
+var LAYER_PLATFORMS = "GameTiles";
 
 var METER = TILE;
 var GRAVITY = METER * 9.8 * 6;
@@ -56,65 +49,83 @@ var ACCEL = MAXDX * 2;
 var FRICTION = MAXDX * 6;
 var JUMP = METER * 1500;
 
-function cellAtPixelCoord(layer, x, y)
+function drawTileLayer(ctx, level, layer)
 {
-	if(x < 0 || x > SCREEN_WIDTH)
-		return 1;
-	if(y > SCREEN_HEIGHT)
-		return 0;
-	return cellAtTileCoord(layer, p2t(x), p2t(y));
+	var offsetx = layer.offsetx || 0;
+	var offsety = layer.offsety || 0;
+	ctx.save();
+	ctx.globalAlpha = layer.opacity;
+	
+	var useParallax = layer.properties !== undefined &&
+						layer.properties.parallaxfactor !== undefined;
+	if(useParallax)
+	{
+		offsetx += viewOffset.x * layer.properties.parallaxfactor;
+		offsety += viewOffset.y * layer.properties.parallaxfactor;
+	}
+	
+	var idx = 0;
+	for(var y = 0;
+			y < layer.height;
+			++y)
+	{
+		for(var x = 0;
+				x < layer.width;
+				++x, ++idx)
+		{
+			if(layer.data[idx] == 0) continue;
+			var tilesetData = GetTileset(level.tilesets, layer.data[idx]);
+			var tileset = tilesetData.tileSet;
+			var tileIndex = tilesetData.correctedIndex;
+			var tileWidth = tileset.tilewidth;
+			var padding = tileset.margin;
+			var spacing = tileset.spacing;
+			var columns = tileset.columns;
+			var rows = tileset.tilecount / columns;
+			var img = levelImages[tileset.image];
+			
+			var sx = padding + (tileIndex % columns) * (tileWidth + spacing);
+			var sy = padding + Math.floor(tileIndex / rows) * (tileWidth + spacing);
+			ctx.drawImage(img, sx, sy, tileWidth, tileWidth, 
+										x * TILE + offsetx, y * TILE + offsety, 
+										tileWidth+1, tileWidth+1);
+		}
+	}
+	
+	ctx.restore();
 }
-function cellAtTileCoord(layer, tx, ty)
+function drawImageLayer(ctx, level, layer)
 {
-	if(tx < 0 || tx >= MAP.tw)
-		return 1;
-	if(ty < 0 || ty >= MAP.th)
-		return 1;
-	return cells[layer][ty][tx];
+	
 }
-function tileToPixel(tile)
+function drawObjectGroup(ctx, level, layer)
 {
-	return tile * TILE;
-}
-function pixelToTile(pixel)
-{
-	return Math.floor(pixel/TILE);
-}
-function bound(value, min, max)
-{
-	if(value < min)
-		return min;
-	if(value > max)
-		return max;
-	return value;
+	
 }
 
-function drawMap()
+function drawMap(ctx)
 {
 	for(var layerIdx = 0;
 			layerIdx < LAYER_COUNT;
 			++layerIdx)
 	{
 		var currentLayer = level1.layers[layerIdx];
-		var offsetx = currentLayer.offsetx || 0;
-		var offsety = currentLayer.offsety || 0;
+		if(currentLayer.visible == false) continue;
 		
-		var idx = 0;
-		for(var y = 0;
-				y < currentLayer.height;
-				++y)
+		switch(currentLayer.type)
 		{
-			for(var x = 0;
-					x < currentLayer.width;
-					++x, ++idx)
-			{
-				if(currentLayer.data[idx] == 0) continue;
-				var tileIndex = currentLayer.data[idx] - 1;
-				var sx = TILESET_PADDING + (tileIndex % TILESET_COUNT_X) * (TILESET_TILE + TILESET_SPACING);
-				var sy = TILESET_PADDING + Math.floor(tileIndex / TILESET_COUNT_Y) * (TILESET_TILE + TILESET_SPACING);
-				context.drawImage(tileset, sx, sy, TILESET_TILE, TILESET_TILE, 
-									x * TILE + offsetx, y * TILE + offsety, TILESET_TILE+1, TILESET_TILE+1);
-			}
+			case "tilelayer":
+				drawTileLayer(ctx, level1, currentLayer);
+			break;
+			case "imagelayer":
+				drawImageLayer(ctx, level1, currentLayer);
+			break;
+			case "objectgroup":
+				drawObjectGroup(ctx, level1, currentLayer);
+			break;
+			default:
+				alert("Unrecognisable layer type: " + currentLayer.type);
+			break;
 		}
 	}
 }
@@ -124,9 +135,11 @@ function initialize()
 {
 	for(var layerIdx = 0; layerIdx < LAYER_COUNT; ++layerIdx)
 	{
+		var currentLayer = level1.layers[layerIdx];
+		if(currentLayer.type != "tilelayer") continue;
 		cells[layerIdx] = [];
 		var idx = 0;
-		var currentLayer = level1.layers[layerIdx];
+		
 		for(var y = 0; y < currentLayer.height; ++y)
 		{
 			cells[layerIdx][y] = [];
@@ -156,6 +169,45 @@ var fpsTime = 0;
 var player = new Player();
 var keyboard = new Keyboard();
 var viewOffset = new Vector2();
+var viewScale = new Vector2(0.75, 0.75);
+
+var GameStates = {
+	SPLASH : "SplashScreen",
+	GAME : "GameScreen",
+	WIN : "WinScreen",
+	GAMEOVER : "GameOverScreen"
+};
+
+var state = GameStates.SPLASH;
+
+function runSplash(deltaTime)
+{
+	state = GameStates.GAME;
+}
+function runGame(deltaTime)
+{
+	context.save();
+	if(player.position.x >= viewOffset.x + canvas.width/2)
+	{
+		viewOffset.x = player.position.x - canvas.width/2;
+	}
+	context.scale(viewScale.x, viewScale.y);
+	context.translate(-viewOffset.x, 0);
+	drawMap(context);
+	
+	player.update(deltaTime);
+	player.draw();
+	
+	context.restore();
+}
+function runWin(deltaTime)
+{
+	
+}
+function runGameOver(deltaTime)
+{
+	
+}
 
 function run()
 {
@@ -163,18 +215,24 @@ function run()
 	context.fillRect(0, 0, canvas.width, canvas.height);
 	var deltaTime = getDeltaTime();
 	
-	context.save();
-	if(player.position.x >= viewOffset.x + canvas.width/2)
+	switch(state)
 	{
-		viewOffset.x = player.position.x - canvas.width/2;
+		case GameStates.SPLASH:
+			runSplash(deltaTime);
+		break;
+		case GameStates.GAME:
+			runGame(deltaTime);
+		break;
+		case GameStates.WIN:
+			runWin(deltaTime);
+		break;
+		case GameStates.GAMEOVER:
+			runGameOver(deltaTime);
+		break;
+		default:
+			alert("You've hit an invalid state: " + state);
+		break;
 	}
-	context.translate(-viewOffset.x, 0);
-	drawMap();
-	
-	player.update(deltaTime);
-	player.draw();
-	
-	context.restore();
 	
 	// update the frame counter 
 	fpsTime += deltaTime;

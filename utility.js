@@ -56,3 +56,105 @@ function rand(floor, ceil)
 	//return Math.floor((Math.random() * (ceil-floor)) + floor);
 	return Math.random() * (ceil-floor) + floor;
 }
+
+function cellAtPixelCoord(layer, x, y)
+{
+	if(x < 0 || x > SCREEN_WIDTH)
+		return 1;
+	if(y > SCREEN_HEIGHT)
+		return 0;
+	return cellAtTileCoord(layer, p2t(x), p2t(y));
+}
+function cellAtTileCoord(layer, tx, ty)
+{
+	if(tx < 0 || tx >= MAP.tw)
+		return 1;
+	if(ty < 0 || ty >= MAP.th)
+		return 1;
+	return cells[layer][ty][tx];
+}
+function tileToPixel(tile)
+{
+	return tile * TILE;
+}
+function pixelToTile(pixel)
+{
+	return Math.floor(pixel/TILE);
+}
+function bound(value, min, max)
+{
+	if(value < min)
+		return min;
+	if(value > max)
+		return max;
+	return value;
+}
+
+function LoadLevelImages(level)
+{
+	var levelImages = {};
+	if(level === undefined) return undefined;
+	for(var i = 0; i < level1.tilesets.length; ++i)
+	{
+		var src = level1.tilesets[i].image;
+		if(levelImages[src] !== undefined) continue;
+		
+		var img = document.createElement("img");
+		img.src = src;
+		levelImages[src] = img;
+	}
+	for(var i = 0; i < level1.layers.length; ++i)
+	{
+		if(level1.layers[i].type != "imagelayer") continue;
+		var src = level1.layers[i].image;
+		if(levelImages[src] !== undefined) continue;
+		
+		var img = document.createElement("img");
+		img.src = src;
+		levelImages[src] = img;
+		
+	}
+	
+	return levelImages;
+}
+
+function GetTileset(tilesets, tileIndex)
+{	
+	var tileSet;
+	var correctedIndex = tileIndex;
+	
+	if(tileIndex >= 0)
+	{
+		for(var i = 0; i < tilesets.length; ++i)
+		{
+			var tSet = tilesets[i];
+			if(tileIndex >= tSet.firstgid && 
+				tileIndex < tSet.firstgid + tSet.tilecount)
+			{
+				tileSet = tSet;
+				correctedIndex -= tSet.firstgid;
+				break;
+			}
+		}
+	}
+	if(tileSet === undefined) return undefined;
+	
+	return {tileSet, correctedIndex};
+}
+
+function GetLayerIndexByName(layers, name)
+{
+	if(layers === undefined || name === undefined) return undefined;
+	
+	var layer = -1;
+	for(var i = 0; i < layers.length; ++i)
+	{
+		if(layers[i].name === name)
+		{
+			layer = i;
+			break;
+		}
+	}
+	
+	return layer;
+}
