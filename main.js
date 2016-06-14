@@ -168,6 +168,7 @@ var fpsTime = 0;
 
 var player = new Player();
 var keyboard = new Keyboard();
+var mouse = new Mouse();
 var viewOffset = new Vector2();
 var viewScale = new Vector2(0.75, 0.75);
 
@@ -187,12 +188,12 @@ function runSplash(deltaTime)
 function runGame(deltaTime)
 {
 	context.save();
-	if(player.position.x >= viewOffset.x + canvas.width/2)
+	if(player.position.x >= viewOffset.x + canvas.width/(2 * viewScale.x))
 	{
-		viewOffset.x = player.position.x - canvas.width/2;
+		viewOffset.x = player.position.x - canvas.width/(2 * viewScale.x);
 	}
 	context.scale(viewScale.x, viewScale.y);
-	context.translate(-viewOffset.x, 0);
+	context.translate(-viewOffset.x, -viewOffset.y);
 	drawMap(context);
 	
 	player.update(deltaTime);
@@ -214,6 +215,13 @@ function run()
 	context.fillStyle = "#ccc";
 	context.fillRect(0, 0, canvas.width, canvas.height);
 	var deltaTime = getDeltaTime();
+	
+	if(mouse.getMouseDown(0) 
+		&& !mouse.getMouseWasDown(0))
+	{
+		console.log(mouse.getMousePos());
+	}
+	
 	
 	switch(state)
 	{
@@ -244,6 +252,7 @@ function run()
 		fpsCount = 0;
 	}
 	
+	mouse.updateState();
 	// draw the FPS
 	context.fillStyle = "#f00";
 	context.font="14px Arial";

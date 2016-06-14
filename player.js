@@ -63,6 +63,8 @@ var Player = function() {
 		this.sprite.setAnimationOffset(i, -55, -87);
 	}
 	
+	this.sprite.setLoop(true);
+	
 	this.position = new Vector2(9 * TILE, 0);
 	this.velocity = new Vector2();
 	this.gunOffset = new Vector2(64, 36);
