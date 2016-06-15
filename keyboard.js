@@ -4,6 +4,7 @@ var Keyboard = function() {
 	window.addEventListener('keydown', function(evt) { self.onKeyDown(evt);}, false);
 	window.addEventListener('keyup', function(evt) { self.onKeyUp(evt); }, false);
 	this.keys = new Array();
+	this.prevKeys = [];
 	// Key constants. Go here for a list of key codes: 
 	// https://developer.mozilla.org/en-US/docs/DOM/KeyboardEvent
 	this.KEY_SPACE = 32;
@@ -28,5 +29,29 @@ Keyboard.prototype.onKeyUp = function(evt)
 };
 Keyboard.prototype.isKeyDown = function(keyCode)
 {
+	if(typeof(this.keys[keyCode]) == 'undefined')
+		return false;
 	return this.keys[keyCode];
 };
+Keyboard.prototype.wasKeyDown = function(i)
+{
+	if(typeof(this.prevKeys[i]) == 'undefined')
+		return false;
+	return this.prevKeys[i];
+};
+Keyboard.prototype.updateState = function()
+{
+	for(var i = 0; i < this.keys.length; ++i)
+	{
+		if(typeof(this.keys[i]) == 'undefined')
+		{
+			this.prevKeys[i] = false;
+			this.keys[i] = false;
+		}
+		else
+		{
+			this.prevKeys[i] = this.keys[i];
+		}
+	}			
+};
+

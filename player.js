@@ -58,6 +58,8 @@ var Player = function() {
 				[65, 66, 67, 68, 69, 70, 71,
 				 72, 73, 74, 75, 76, 77, 78]);
 	
+	this.offset = new Vector2(SPRITE_WIDTH/4, SPRITE_HEIGHT/4);
+	
 	for(var i = 0; i < ANIM_MAX; ++i)
 	{
 		this.sprite.setAnimationOffset(i, -55, -87);
@@ -65,12 +67,11 @@ var Player = function() {
 	
 	this.sprite.setLoop(true);
 	
-	this.position = new Vector2(9 * TILE, 0);
+	this.position = new Vector2(9 * TILE, 4 * TILE);
 	this.velocity = new Vector2();
 	this.gunOffset = new Vector2(64, 36);
 	this.width = SPRITE_WIDTH;
 	this.height = SPRITE_HEIGHT;
-	this.offset = new Vector2(TILE/2.0, -TILE/2.0);
 	
 	this.falling = true;
 	this.jumping = false;
@@ -158,10 +159,10 @@ Player.prototype.update = function(deltaTime)
 	else if(wasright)
 		ddx = ddx - FRICTION;
 	
-	this.position.set(Math.round(this.position.x + deltaTime * this.velocity.x),
-					  Math.round(this.position.y + deltaTime * this.velocity.y));
 	this.velocity.set(bound(this.velocity.x + deltaTime * ddx, -MAXDX, MAXDX),
 					  bound(this.velocity.y + deltaTime * ddy, -MAXDY, MAXDY));
+	this.position.set(Math.round(this.position.x + deltaTime * this.velocity.x),
+					  Math.round(this.position.y + deltaTime * this.velocity.y));
 	
 	if((wasleft && this.velocity.x > 0) ||
 	   (wasright && this.velocity.x < 0))
@@ -175,46 +176,50 @@ Player.prototype.update = function(deltaTime)
 	var tx = pixelToTile(position.x);
 	var ty = pixelToTile(position.y);
 	var platformsLayer = GetLayerIndexByName(level1.layers, LAYER_PLATFORMS);
-	var cell = cellAtTileCoord(platformsLayer, tx, ty);
-	var cellleft = cellAtTileCoord(platformsLayer, tx - 1, ty);
-	var cellright = cellAtTileCoord(platformsLayer, tx + 1, ty);
-	var celldown = cellAtTileCoord(platformsLayer, tx, ty + 1);
-	var cellup = cellAtTileCoord(platformsLayer, tx, ty - 1);
 	
-	if(this.velocity.y > 0)
+	if(this.velocity.y < 0)
 	{
-		if(celldown && !cell)
+		var tx = pixelToTile(this.position.x + this.offset.x);
+		var ty = pixelToTile(this.position.y + this.offset.y);
+		if(cellAtTileCoord(platformsLayer, tx, ty))
 		{
-			this.position.y = tileToPixel(ty) - this.offset.y;
 			this.velocity.y = 0;
-			this.falling = false;
+			this.position.y = ty * TILE + TILE - this.offset.y;
+		}
+	}
+	else if(this.velocity.y > 0)
+	{
+		var tx = pixelToTile(this.position.x + this.offset.x);
+		var ty = pixelToTile(this.position.y + this.offset.y);
+		if(cellAtTileCoord(platformsLayer, tx, ty))
+		{
 			this.jumping = false;
-		}
-	}
-	else if(this.velocity.y < 0)
-	{
-		if(cell && !celldown)
-		{
-			this.position.y = tileToPixel(ty + 1) - this.offset.y;
+			this.falling = false;
 			this.velocity.y = 0;
+			this.position.y = ty * TILE - 1 - this.offset.y;
 		}
 	}
-	if(this.velocity.x > 0)
+	if(this.velocity.x < 0)
 	{
-		if(cellright && !cell)
+		var tx = pixelToTile(this.position.x + this.offset.x);
+		var ty = pixelToTile(this.position.y + this.offset.y);
+		if(cellAtTileCoord(platformsLayer, tx, ty))
 		{
-			this.position.x = tileToPixel(tx) - this.offset.x;
 			this.velocity.x = 0;
+			this.position.x = tx * TILE + TILE - this.offset.x;
 		}
 	}
-	else if(this.velocity.x < 0)
+	else if(this.velocity.x > 0)
 	{
-		if(cellleft && !cell)
+		var tx = pixelToTile(this.position.x + this.offset.x);
+		var ty = pixelToTile(this.position.y + this.offset.y);
+		if(cellAtTileCoord(platformsLayer, tx, ty))
 		{
-			this.position.x = tileToPixel(tx + 1) - this.offset.x;
 			this.velocity.x = 0;
+			this.position.x = tx * TILE - 1 - this.offset.x;
 		}
 	}
+	
 }
 Player.prototype.draw = function()
 {

@@ -63,3 +63,4 @@ var Mouse = function()
 		return this.privateState.mousePos.copy();
 	};
 };
+

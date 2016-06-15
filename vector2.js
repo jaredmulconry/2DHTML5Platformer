@@ -25,7 +25,7 @@ var Vector2 = function(x, y)
 	};
 	this.magnitude = function()
 	{
-		return Math.sqrt(this.x*this.x + this.y*this.y);
+		return Math.sqrt(this.dot());
 	};
 	this.normalize = function()
 	{
@@ -34,6 +34,12 @@ var Vector2 = function(x, y)
 		
 		this.x /= mag;
 		this.y /= mag;
+	};
+	this.normalized = function()
+	{
+		var normCpy = this.copy();
+		normCpy.normalize();
+		return normCpy;
 	};
 	this.add = function(v2)
 	{
@@ -63,5 +69,18 @@ var Vector2 = function(x, y)
 	this.reverse = function()
 	{
 		this.set(-this.x, -this.y);
+	};
+	this.dot = function(v2)
+	{
+		return this.x*this.x + this.y*this.y;
+	};
+	this.angle = function()
+	{
+		return Math.atan2(this.y, this.x);
+	};
+	//Assumes that both vectors are normalized.
+	this.angleBetween = function(v2)
+	{
+		return Math.acos(this.dot(v2));
 	};
 };

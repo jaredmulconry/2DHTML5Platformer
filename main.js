@@ -85,7 +85,7 @@ function drawTileLayer(ctx, level, layer)
 			var img = levelImages[tileset.image];
 			
 			var sx = padding + (tileIndex % columns) * (tileWidth + spacing);
-			var sy = padding + Math.floor(tileIndex / rows) * (tileWidth + spacing);
+			var sy = padding + Math.floor(tileIndex / columns) * (tileWidth + spacing);
 			ctx.drawImage(img, sx, sy, tileWidth, tileWidth, 
 										x * TILE + offsetx, y * TILE + offsety, 
 										tileWidth+1, tileWidth+1);
@@ -215,14 +215,7 @@ function run()
 	context.fillStyle = "#ccc";
 	context.fillRect(0, 0, canvas.width, canvas.height);
 	var deltaTime = getDeltaTime();
-	
-	if(mouse.getMouseDown(0) 
-		&& !mouse.getMouseWasDown(0))
-	{
-		console.log(mouse.getMousePos());
-	}
-	
-	
+
 	switch(state)
 	{
 		case GameStates.SPLASH:
