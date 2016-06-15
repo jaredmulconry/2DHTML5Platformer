@@ -27,23 +27,34 @@ var Mouse = function()
 		buttonPreviousState: [false, false, false],
 	};
 	
-	
-	
 	this.updateState = function()
 	{
 		for(var i = 0; i < this.privateState.buttonState.length; ++i)
 		{
-			this.privateState.buttonPreviousState[i] = 
-				this.privateState.buttonState[i];
+			if(typeof(this.privateState.buttonState[i]) == 'undefined')
+			{
+				this.privateState.buttonPreviousState[i] = false;
+				this.privateState.buttonState[i] = false;
+			}
+			else
+			{
+				this.privateState.buttonPreviousState[i] = 
+					this.privateState.buttonState[i];
+			}
+			
 		}			
 	};
 	
 	this.getMouseDown = function(i)
 	{
+		if(typeof(this.privateState.buttonState[i]) == 'undefined')
+			return false;
 		return this.privateState.buttonState[i];
 	};
 	this.getMouseWasDown = function(i)
 	{
+		if(typeof(this.privateState.buttonPreviousState[i]) == 'undefined')
+			return false;
 		return this.privateState.buttonPreviousState[i];
 	};
 	
